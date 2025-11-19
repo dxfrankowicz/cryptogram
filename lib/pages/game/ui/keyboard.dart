@@ -1,7 +1,7 @@
 import 'package:cryptogram_game/app/colors.dart';
-import 'package:cryptogram_game/domain.dart';
-import 'package:cryptogram_game/presentation/bloc/game/game_bloc.dart';
+import 'package:cryptogram_game/services/domain.dart';
 import 'package:cryptogram_game/presentation/components/button_icon.dart';
+import 'package:cryptogram_game/pages/game/bloc/game_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 

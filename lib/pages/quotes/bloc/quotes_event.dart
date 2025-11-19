@@ -7,4 +7,8 @@ abstract class QuotesEvent extends Equatable {
   List<Object> get props => [];
 }
 
-class GetQuotes extends QuotesEvent {}
+class GetQuotes extends QuotesEvent {
+  final bool forceGetFromFirestore;
+
+  const GetQuotes({this.forceGetFromFirestore = false});
+}

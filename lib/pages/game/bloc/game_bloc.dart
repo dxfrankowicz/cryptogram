@@ -4,14 +4,13 @@ import 'dart:math' as math;
 
 import 'package:bloc/bloc.dart';
 import 'package:cryptogram_game/data.dart';
-import 'package:cryptogram_game/domain.dart';
+import 'package:cryptogram_game/services/domain.dart';
 import 'package:cryptogram_game/models/quote.dart';
 import 'package:equatable/equatable.dart';
 import 'package:collection/collection.dart';
 
-part 'game_event.dart';
-
 part 'game_state.dart';
+part 'game_event.dart';
 
 class GameBloc extends Bloc<GameEvent, GameInitial> {
   GameBloc(this._statsRepository) : super(const GameInitial(playerGuesses: <LetterCode>[])) {
@@ -44,6 +43,21 @@ class GameBloc extends Bloc<GameEvent, GameInitial> {
   String? getPlayerGuessCodeByLetter({required String letter}) =>
       state.playerGuesses.firstWhereOrNull((x) => x.letter == letter)?.code;
 
+  int _calculateScore({required Level level, required int seconds}){
+    return level.difficulty * seconds;
+  }
+
+  List<LetterCode> get _getLettersCodeInOrder {
+    final hiddenLettersInOrder =
+        state.lettersCode.where((x) => state.hiddenLetters.contains(x.letter)).map((e) => e.letter!).toList();
+    final list = List.generate(
+        state.hiddenLetters.length,
+        (i) => LetterCode(
+            letter: hiddenLettersInOrder.elementAt(i),
+            code: getCodeByLetter(letter: hiddenLettersInOrder.elementAt(i))));
+    return list;
+  }
+
   List<LetterCode> setLetter({required String code, required String letter, required List<LetterCode> originalList}) {
     final list = List.of(originalList);
     list[originalList.indexWhere((x) => x.code == code)] = LetterCode(letter: letter, code: code);
@@ -52,9 +66,10 @@ class GameBloc extends Bloc<GameEvent, GameInitial> {
 
   Future<void> _onGameStarted(GameStarted event, Emitter<GameInitial> emit) async {
     letterPressedHistory = [];
-    var quote = (await _statsRepository.provider.getQuotesList(author: event.chosenAuthor, category: event.chosenCategory)
-          ..shuffle())
-        .first;
+    var quote =
+        (await _statsRepository.provider.getQuotesList(author: event.chosenAuthor, category: event.chosenCategory)
+              ..shuffle())
+            .first;
     log("QUOTE FROM: Author: ${event.chosenAuthor} || Category: ${event.chosenCategory}");
 
     final playerGuesses = <LetterCode>[];
@@ -79,7 +94,6 @@ class GameBloc extends Bloc<GameEvent, GameInitial> {
         hiddenLettersInOrder =
             lettersCode.where((x) => hiddenLetters.contains(x.letter)).map((e) => e.letter!).toList();
 
-        log("HIDDEN LETTERS IN ORDER $hiddenLettersInOrder");
         log("PLAYER CODES: $playerGuesses");
       }
 
@@ -101,6 +115,7 @@ class GameBloc extends Bloc<GameEvent, GameInitial> {
     emit(GameInitial(
         quote: quote,
         level: event.level,
+        gameDuration: Duration.zero,
         playerGuesses: playerGuesses,
         chosenAuthor: event.chosenAuthor,
         chosenCategory: event.chosenCategory,
@@ -108,9 +123,11 @@ class GameBloc extends Bloc<GameEvent, GameInitial> {
         lettersOfQuoteInOrder: quote.text.toLowerCase().split('').where((x) => x.isNotEmpty && x != ' ').toList(),
         hiddenLetters: hiddenLettersInOrder));
 
+    log("HIDDEN LETTERS IN ORDER $_getLettersCodeInOrder");
+
     timer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if(!super.isClosed) {
-        add(UpdateGameTime());
+      if (!super.isClosed) {
+        add(UpdateGameTime(Duration(seconds: timer.tick)));
       }
     });
   }
@@ -123,27 +140,29 @@ class GameBloc extends Bloc<GameEvent, GameInitial> {
   }
 
   FutureOr<void> _updateGameTime(UpdateGameTime event, Emitter<GameInitial> emit) {
-    emit(state.copyWith(gameDuration: Duration(seconds: timer.tick)));
+    emit(state.copyWith(gameDuration: event.duration));
   }
 
   void _onLetterPressed(LetterPressed event, Emitter<GameInitial> emit, {String? hintLetter}) {
     log("SETTING LETTER: ${event.letter} FOR CODE: ${getCodeByLetter(letter: hintLetter ?? state.activeLetter)}");
 
-    final playerGuesses = setLetter(
-        code: getCodeByLetter(letter: hintLetter ?? state.activeLetter)!,
-        letter: event.letter,
-        originalList: state.playerGuesses);
-    letterPressedHistory.add(state);
-    emit(state.copyWith(playerGuesses: playerGuesses));
+    if(getCodeByLetter(letter: hintLetter ?? state.activeLetter) != null) {
+      final playerGuesses = setLetter(
+          code: getCodeByLetter(letter: hintLetter ?? state.activeLetter)!,
+          letter: event.letter,
+          originalList: state.playerGuesses);
+      letterPressedHistory.add(state);
+      emit(state.copyWith(playerGuesses: playerGuesses));
 
-    final hasWon = playerGuesses.every((guess) => getLetterByCode(code: guess.code!) == guess.letter);
-    log("CHECKING IF GAME WON: $hasWon\nPLAYER GUESSES: $playerGuesses");
-    if (hasWon) {
-      _onGameFinished(const GameFinished(hasWon: true), emit);
-    } else if (hintLetter != null) {
-      emit(state.copyWith(activeLetter: hintLetter, activeIndex: state.lettersOfQuoteInOrder.indexOf(hintLetter)));
-    } else {
-      _nextLetter(NextLetter(), emit, nextNotFilled: true);
+      final hasWon = playerGuesses.every((guess) => getLetterByCode(code: guess.code!) == guess.letter);
+      log("CHECKING IF GAME WON: $hasWon\nPLAYER GUESSES: $playerGuesses");
+      if (hasWon) {
+        _onGameFinished(const GameFinished(hasWon: true), emit);
+      } else if (hintLetter != null) {
+        emit(state.copyWith(activeLetter: hintLetter, activeIndex: state.lettersOfQuoteInOrder.indexOf(hintLetter)));
+      } else {
+        _nextLetter(NextLetter(), emit, nextNotFilled: true);
+      }
     }
   }
 
@@ -158,9 +177,29 @@ class GameBloc extends Bloc<GameEvent, GameInitial> {
     }
   }
 
-  void _nextLetter(NextLetter event, Emitter<GameInitial> emit, {bool nextNotFilled = false}) {
-    int nextLetterIndex = state.activeIndex + 1;
-    bool nextLetterIsHidden() => state.hiddenLetters.contains(state.lettersOfQuoteInOrder[nextLetterIndex]);
+  void _nextLetter(NextLetter event, Emitter<GameInitial> emit, {bool nextNotFilled = false, int checkFromStart = 0}) {
+    int nextLetterIndex;
+
+    if (checkFromStart > 0) {
+      final emptyGuesses = state.playerGuesses.where((x) => x.letter?.isEmpty ?? true);
+      final firstEmptyGuess =
+          _getLettersCodeInOrder.firstWhereOrNull((x) => emptyGuesses.map((e) => e.code).contains(x.code));
+      if (firstEmptyGuess != null) {
+        nextLetterIndex = state.lettersOfQuoteInOrder.indexOf(firstEmptyGuess!.letter!);
+      } else {
+        return;
+      }
+    } else {
+      nextLetterIndex = state.activeIndex + 1;
+    }
+
+    bool nextLetterIsHidden() {
+      try {
+        return state.hiddenLetters.contains(state.lettersOfQuoteInOrder[nextLetterIndex]);
+      } catch (e) {
+        return false;
+      }
+    }
 
     bool checkNextLetter() => (nextNotFilled
         ? getPlayerGuessLetterByCode(code: getCodeByLetter(letter: state.lettersOfQuoteInOrder[nextLetterIndex])!) == ''
@@ -184,7 +223,7 @@ class GameBloc extends Bloc<GameEvent, GameInitial> {
         } else {
           nextLetterIndex += 1;
           if (nextLetterIndex >= state.lettersOfQuoteInOrder.length) {
-            return;
+            _nextLetter(event, emit, checkFromStart: checkFromStart + 1);
           }
         }
       }
@@ -223,6 +262,7 @@ class GameBloc extends Bloc<GameEvent, GameInitial> {
 
   void _onGameFinished(GameFinished event, Emitter<GameInitial> emit) {
     log("GAME WON");
+    timer.cancel();
     emit(state.copyWith(gameStatus: event.hasWon ? GameStatus.success : GameStatus.failure));
   }
 

@@ -2,6 +2,14 @@ part of 'game_bloc.dart';
 
 enum GameStatus { initial, inProgress, success, failure }
 
+class GameTimeCubit extends Cubit<int> {
+  GameTimeCubit() : super(0);
+
+  void increment() => emit(state + 1);
+
+  void reset() => emit(0);
+}
+
 abstract class GameState extends Equatable {
   const GameState();
 

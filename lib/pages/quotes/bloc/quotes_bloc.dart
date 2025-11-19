@@ -5,6 +5,7 @@ import 'dart:developer';
 import 'package:bloc/bloc.dart';
 import 'package:cryptogram_game/data.dart';
 import 'package:cryptogram_game/models/quote.dart';
+import 'package:cryptogram_game/services/firestore.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/services.dart';
 
@@ -20,14 +21,14 @@ class QuotesBloc extends Bloc<QuotesEvent, QuotesState> {
   /// Interacts with storage for updating game stats.
   final GameStatsRepository _statsRepository;
 
-  Future<void> _getQuotes(GetQuotes event, Emitter<QuotesState> emit, {bool forceUpdate = false}) async {
+  Future<void> _getQuotes(GetQuotes event, Emitter<QuotesState> emit) async {
     emit(QuotesLoading());
 
     List<Quote> quotes = await _statsRepository.provider.getQuotesList();
     Set<String> categories = {};
     Set<String> authors = {};
 
-    if (quotes.isNotEmpty && !forceUpdate) {
+    if (quotes.isNotEmpty && !event.forceGetFromFirestore) {
       log("Found saved quotes");
       for (Quote q in quotes) {
         authors.add(q.author!);
@@ -35,18 +36,14 @@ class QuotesBloc extends Bloc<QuotesEvent, QuotesState> {
       }
     } else {
       log("Getting quotes from JSON");
-      String data = await rootBundle.loadString("assets/quotes/quotes.json");
-      var json = jsonDecode(data);
+      final List<Quote> data = await FirestoreService.getData();
 
-      json.forEach((e) {
-        Quote q = Quote.fromJson(e);
+      for (Quote q in data) {
         categories.addAll(q.categories ?? []);
         authors.add(q.author!);
         quotes.add(q);
-      });
+      }
     }
-
-    quotes = [...quotes, ...Quote.quotes];
 
     log("Number of quotes: ${quotes.length}");
     log("Number of categories ${categories.length}: $categories");

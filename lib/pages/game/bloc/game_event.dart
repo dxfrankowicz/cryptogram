@@ -52,4 +52,8 @@ class ResetCurrentGame extends GameEvent {}
 
 class HintLetter extends GameEvent {}
 
-class UpdateGameTime extends GameEvent {}
+class UpdateGameTime extends GameEvent {
+  final Duration duration;
+
+  const UpdateGameTime(this.duration);
+}

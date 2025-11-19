@@ -1,10 +1,10 @@
 import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:cryptogram_game/app/colors.dart';
 import 'package:cryptogram_game/data.dart';
-import 'package:cryptogram_game/domain.dart';
-import 'package:cryptogram_game/presentation/bloc/game/game_bloc.dart';
-import 'package:cryptogram_game/presentation/bloc/quotes/quotes_bloc.dart';
-import 'package:cryptogram_game/presentation/pages/game_page.dart';
+import 'package:cryptogram_game/services/domain.dart';
+import 'package:cryptogram_game/pages/game/bloc/game_bloc.dart';
+import 'package:cryptogram_game/pages/quotes/bloc/quotes_bloc.dart';
+import 'package:cryptogram_game/pages/game/ui/game_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -26,8 +26,7 @@ class _MenuPageState extends State<MenuPage> {
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
-        title: const Text("KRYPTOGRAM",
-            style: TextStyle(fontFamily: 'ProcrastinatingPixie', fontSize: 40)),
+        title: const Text("KRYPTOGRAM", style: TextStyle(fontFamily: 'ProcrastinatingPixie', fontSize: 40)),
       ),
       body: SafeArea(
         child: Padding(
@@ -38,10 +37,7 @@ class _MenuPageState extends State<MenuPage> {
               children: [
                 getCategoryButton(context: context, quotesBloc: quotesBloc),
                 const SizedBox(height: 12),
-                ...Level.values
-                    .map((level) =>
-                        geLevelButton(context: context, level: level))
-                    .toList()
+                ...Level.values.map((level) => geLevelButton(context: context, level: level)).toList()
               ],
             ),
           ),
@@ -50,8 +46,7 @@ class _MenuPageState extends State<MenuPage> {
     );
   }
 
-  Widget getCategoryButton(
-      {required BuildContext context, required QuotesBloc quotesBloc}) {
+  Widget getCategoryButton({required BuildContext context, required QuotesBloc quotesBloc}) {
     return BlocBuilder(
         bloc: quotesBloc,
         builder: (context, state) {
@@ -71,8 +66,7 @@ class _MenuPageState extends State<MenuPage> {
                           body: StatefulBuilder(
                             builder: (_, _setState) {
                               return SizedBox(
-                                height:
-                                    MediaQuery.of(context).size.height * 0.6,
+                                height: MediaQuery.of(context).size.height * 0.6,
                                 child: Padding(
                                     padding: const EdgeInsets.all(8.0),
                                     child: Column(
@@ -81,17 +75,11 @@ class _MenuPageState extends State<MenuPage> {
                                           children: [
                                             Expanded(
                                               child: Card(
-                                                shape:
-                                                    const RoundedRectangleBorder(
-                                                        borderRadius:
-                                                            BorderRadius.all(
-                                                                Radius.circular(
-                                                                    8))),
+                                                shape: const RoundedRectangleBorder(
+                                                    borderRadius: BorderRadius.all(Radius.circular(8))),
                                                 color: AppColors.shade2,
                                                 child: ClipRRect(
-                                                  borderRadius:
-                                                      const BorderRadius.all(
-                                                          Radius.circular(8)),
+                                                  borderRadius: const BorderRadius.all(Radius.circular(8)),
                                                   child: Row(
                                                     children: [
                                                       Expanded(
@@ -102,37 +90,22 @@ class _MenuPageState extends State<MenuPage> {
                                                             });
                                                           },
                                                           child: Container(
-                                                              color: categories
-                                                                  ? Colors
-                                                                      .blueGrey
-                                                                  : null,
-                                                              padding:
-                                                                  const EdgeInsets
-                                                                      .all(8),
-                                                              child: const Center(
-                                                                  child: Text(
-                                                                      "Kategorie"))),
+                                                              color: categories ? Colors.blueGrey : null,
+                                                              padding: const EdgeInsets.all(8),
+                                                              child: const Center(child: Text("Kategorie"))),
                                                         ),
                                                       ),
                                                       Expanded(
                                                         child: InkWell(
                                                           onTap: () {
                                                             _setState(() {
-                                                              categories =
-                                                                  false;
+                                                              categories = false;
                                                             });
                                                           },
                                                           child: Container(
-                                                              color: !categories
-                                                                  ? Colors
-                                                                      .blueGrey
-                                                                  : null,
-                                                              padding:
-                                                                  const EdgeInsets
-                                                                      .all(8),
-                                                              child: const Center(
-                                                                  child: Text(
-                                                                      "Autorzy"))),
+                                                              color: !categories ? Colors.blueGrey : null,
+                                                              padding: const EdgeInsets.all(8),
+                                                              child: const Center(child: Text("Autorzy"))),
                                                         ),
                                                       ),
                                                     ],
@@ -145,23 +118,17 @@ class _MenuPageState extends State<MenuPage> {
                                         const SizedBox(height: 8),
                                         Expanded(
                                           child: ListView.builder(
-                                              itemCount: (categories
-                                                  ? state.categories.length
-                                                  : state.authors.length),
+                                              itemCount: (categories ? state.categories.length : state.authors.length),
                                               itemBuilder: (_, i) {
-                                                final item = categories
-                                                    ? state.categories[i]
-                                                    : state.authors[i];
+                                                final item = categories ? state.categories[i] : state.authors[i];
                                                 return InkWell(
                                                   onTap: () {
                                                     _setState(() {
                                                       if (categories) {
-                                                        chosenCategory =
-                                                            state.categories[i];
+                                                        chosenCategory = state.categories[i];
                                                         chosenAuthor = '';
                                                       } else {
-                                                        chosenAuthor =
-                                                            state.authors[i];
+                                                        chosenAuthor = state.authors[i];
                                                         chosenCategory = '';
                                                       }
                                                     });
@@ -171,35 +138,21 @@ class _MenuPageState extends State<MenuPage> {
                                                     shape: RoundedRectangleBorder(
                                                         side: BorderSide(
                                                             color: (categories &&
-                                                                        chosenCategory ==
-                                                                            state.categories[
-                                                                                i]) ||
-                                                                    (!categories &&
-                                                                        chosenAuthor ==
-                                                                            state.authors[
-                                                                                i])
-                                                                ? Colors
-                                                                    .blueGrey
-                                                                : Colors
-                                                                    .transparent,
+                                                                        chosenCategory == state.categories[i]) ||
+                                                                    (!categories && chosenAuthor == state.authors[i])
+                                                                ? Colors.blueGrey
+                                                                : Colors.transparent,
                                                             width: 2),
-                                                        borderRadius:
-                                                            BorderRadius.all(
-                                                                Radius.circular(
-                                                                    8))),
+                                                        borderRadius: BorderRadius.all(Radius.circular(8))),
                                                     color: AppColors.shade2,
                                                     child: Padding(
-                                                      padding:
-                                                          const EdgeInsets.all(
-                                                              8.0),
-                                                      child: Center(
-                                                          child: Text(item)),
+                                                      padding: const EdgeInsets.all(8.0),
+                                                      child: Center(child: Text(item)),
                                                     ),
                                                   ),
                                                 );
                                               },
-                                              padding: const EdgeInsets.only(
-                                                  bottom: 8)),
+                                              padding: const EdgeInsets.only(bottom: 8)),
                                         )
                                       ],
                                     )),
@@ -214,24 +167,17 @@ class _MenuPageState extends State<MenuPage> {
                 highlightColor: Colors.blue,
                 borderRadius: const BorderRadius.all(Radius.circular(8)),
                 child: Card(
-                  shape: const RoundedRectangleBorder(
-                      borderRadius: BorderRadius.all(Radius.circular(8))),
+                  shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(8))),
                   shadowColor: Colors.blue,
                   elevation: 3.0,
                   child: ClipRRect(
                     borderRadius: const BorderRadius.all(Radius.circular(8)),
                     child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          vertical: 12.0, horizontal: 6.0),
+                      padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 6.0),
                       child: Column(
                         children: [
                           Text("KATEGORIA/AUTOR",
-                              textAlign: TextAlign.center,
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodySmall
-                                  ?.copyWith(
-                                      fontFamily: 'ProcrastinatingPixie')),
+                              textAlign: TextAlign.center, style: Theme.of(context).textTheme.bodySmall),
                           state is QuotesLoaded
                               ? Text(
                                   chosenCategory.isNotEmpty
@@ -240,10 +186,7 @@ class _MenuPageState extends State<MenuPage> {
                                           ? chosenAuthor
                                           : "POPULARNE",
                                   textAlign: TextAlign.center,
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .headlineSmall
-                                      ?.copyWith(color: Colors.white))
+                                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(color: Colors.white))
                               : const CircularProgressIndicator()
                         ],
                       ),
@@ -267,10 +210,11 @@ class _MenuPageState extends State<MenuPage> {
               context,
               MaterialPageRoute(builder: (context) {
                 return BlocProvider(
-                  create: (ctx) => GameBloc(ctx.read<GameStatsRepository>())
-                    ..add(GameStarted(level,
-                        chosenCategory: chosenCategory,
-                        chosenAuthor: chosenAuthor)),
+                  create: (ctx) {
+                    final gameBloc = GameBloc(ctx.read<GameStatsRepository>());
+                    return gameBloc
+                      ..add(GameStarted(level, chosenCategory: chosenCategory, chosenAuthor: chosenAuthor));
+                  },
                   child: const GamePage(),
                 );
               }),
@@ -279,20 +223,19 @@ class _MenuPageState extends State<MenuPage> {
           highlightColor: level.color,
           borderRadius: const BorderRadius.all(Radius.circular(8)),
           child: Card(
-            shape: const RoundedRectangleBorder(
-                borderRadius: BorderRadius.all(Radius.circular(8))),
+            shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(8))),
             shadowColor: level.color,
             elevation: 3.0,
             child: ClipRRect(
               borderRadius: const BorderRadius.all(Radius.circular(8)),
               child: Container(
-                padding:
-                    const EdgeInsets.symmetric(vertical: 12.0, horizontal: 6.0),
+                padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 6.0),
                 child: Text(level.name.toUpperCase(),
                     textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                        color: level.color,
-                        fontFamily: 'ProcrastinatingPixie')),
+                    style: Theme.of(context)
+                        .textTheme
+                        .headlineSmall
+                        ?.copyWith(color: level.color, fontFamily: 'ProcrastinatingPixie')),
               ),
             ),
           ),

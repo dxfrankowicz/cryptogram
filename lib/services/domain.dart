@@ -2,9 +2,6 @@ import 'package:cryptogram_game/models/quote.dart';
 import 'package:equatable/equatable.dart';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
-import 'models/quote.dart';
-
-Quote nextQuote() => (Quote.quotes..shuffle()).first;
 
 List<String> getWordListOfSentence(String s) => s.toLowerCase().split(' ');
 
@@ -20,6 +17,7 @@ bool isLetterHidden(
 
 bool isPunctuationMark(String e) =>
     e == ',' || e == '.' || e == '-' || e == ';' || e == ":" || e == '(' || e == ')' || e == '[' || e == ']';
+
 
 List<String> polishAlphabet = [
   'a',
@@ -73,7 +71,22 @@ extension LevelExtension on Level {
       case Level.expert:
         return 100;
       default:
-        return 30;
+        return 45;
+    }
+  }
+
+  int get defaultTimeToSolve {
+    switch (this) {
+      case Level.easy:
+        return 90;
+      case Level.medium:
+        return 120;
+      case Level.hard:
+        return 180;
+      case Level.expert:
+        return 300;
+      default:
+        return 90;
     }
   }
 
@@ -108,7 +121,6 @@ class GameStats extends Equatable {
   /// Constructor
   const GameStats({
     this.gamesPlayed = -1,
-    this.gamesWon = -1,
     this.longestStreak = -1,
     this.currentStreak = -1,
   });
@@ -116,21 +128,11 @@ class GameStats extends Equatable {
   /// Amount of games played.
   final int gamesPlayed;
 
-  /// Amount of games won.
-  final int gamesWon;
-
   /// Longest streak of games won.
   final int longestStreak;
 
   /// Current streak of games won.
   final int currentStreak;
-
-  /// Percentage of games won
-  double get winRate {
-    return gamesPlayed >= 0
-        ? (gamesWon / (gamesPlayed == 0 ? 1 : gamesPlayed)) * 100
-        : -1;
-  }
 
   /// Provides empty instance of statistics.
   static const empty = GameStats();
@@ -138,7 +140,6 @@ class GameStats extends Equatable {
   @override
   List<Object?> get props => [
         gamesPlayed,
-        gamesWon,
         longestStreak,
         currentStreak,
       ];
@@ -146,13 +147,11 @@ class GameStats extends Equatable {
   /// Provides a copied instance.
   GameStats copyWith({
     int? gamesPlayed,
-    int? gamesWon,
     int? longestStreak,
     int? currentStreak,
   }) =>
       GameStats(
         gamesPlayed: gamesPlayed ?? this.gamesPlayed,
-        gamesWon: gamesWon ?? this.gamesWon,
         longestStreak: longestStreak ?? this.longestStreak,
         currentStreak: currentStreak ?? this.currentStreak,
       );

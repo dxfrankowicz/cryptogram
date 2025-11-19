@@ -1,40 +1,12 @@
-/// Copyright (c) 2022 Razeware LLC
-///
-/// Permission is hereby granted, free of charge, to any person obtaining a copy
-/// of this software and associated documentation files (the "Software"), to
-/// deal in the Software without restriction, including without limitation the
-/// rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
-/// sell copies of the Software, and to permit persons to whom the Software is
-/// furnished to do so, subject to the following conditions:
-///
-/// The above copyright notice and this permission notice shall be included in
-/// all copies or substantial portions of the Software.
-///
-/// Notwithstanding the foregoing, you may not use, copy, modify, merge,
-/// publish, distribute, sublicense, create a derivative work, and/or sell
-/// copies of the Software in any work that is designed, intended, or marketed
-/// for pedagogical or instructional purposes related to programming, coding,
-/// application development, or information technology.  Permission for such
-/// use, copying, modification, merger, publication, distribution, sublicensing,
-///  creation of derivative works, or sale is expressly withheld.
-///
-/// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-/// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-/// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-/// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-/// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-/// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
-///  IN THE SOFTWARE.
-///
 import 'dart:convert';
 import 'dart:developer';
 
-import 'package:cryptogram_game/presentation/bloc/quotes/quotes_bloc.dart';
+import 'package:cryptogram_game/pages/quotes/bloc/quotes_bloc.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'domain.dart';
+import 'services/domain.dart';
 import 'models/quote.dart';
 
 /// Interacts with shared preferences to store and retrieve data
@@ -45,9 +17,6 @@ class GameStatsSharedPrefProvider {
 
   /// Key for retrieving data that indicates the amount of games played.
   static const kGamesPlayed = 'GAMES_PLAYED';
-
-  /// Key for retrieving data that indicates the amount of games won.
-  static const kGamesWon = 'GAMES_WON';
 
   /// Key for retrieving data that indicates the longest streak of games won.
   static const kLongestStreak = 'GAMES_LONGEST_STREAK';
@@ -119,7 +88,6 @@ class GameStatsRepository {
     return GameStats(
       gamesPlayed:
           await provider.fetchStat(GameStatsSharedPrefProvider.kGamesPlayed),
-      gamesWon: await provider.fetchStat(GameStatsSharedPrefProvider.kGamesWon),
       longestStreak:
           await provider.fetchStat(GameStatsSharedPrefProvider.kLongestStreak),
       currentStreak:
@@ -131,7 +99,7 @@ class GameStatsRepository {
   /// to the games won stat. It also updates the current streak and longest
   /// streak as needed.
   Future<void> addGameFinished({
-    bool hasWon = false,
+    bool hasWon = false, required int quoteId,
   }) async {
     final current = await fetchStats();
 
@@ -141,11 +109,6 @@ class GameStatsRepository {
     );
 
     if (hasWon) {
-      await provider.updateStat(
-        GameStatsSharedPrefProvider.kGamesWon,
-        current.gamesWon + 1,
-      );
-
       await provider.updateStat(
         GameStatsSharedPrefProvider.kCurrentStreak,
         current.currentStreak + 1,
@@ -168,10 +131,6 @@ class GameStatsRepository {
   /// Resets the stats stored locally.
   Future<void> resetStats() async {
     await provider.updateStat(
-      GameStatsSharedPrefProvider.kGamesWon,
-      0,
-    );
-    await provider.updateStat(
       GameStatsSharedPrefProvider.kGamesPlayed,
       0,
     );
@@ -183,14 +142,6 @@ class GameStatsRepository {
       GameStatsSharedPrefProvider.kLongestStreak,
       0,
     );
-  }
-
-  /// Init fetch quotes list.
-  Future<void> fetchQuotesList(BuildContext context) async {
-    final list = await provider.getQuotesList();
-    if (list.isEmpty) {
-      context.read<QuotesBloc>().add(GetQuotes());
-    }
   }
 
   /// Saves quotes list.

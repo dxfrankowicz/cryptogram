@@ -1,14 +1,15 @@
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:confetti/confetti.dart';
-import 'package:cryptogram_game/presentation/bloc/game/game_bloc.dart';
 import 'package:cryptogram_game/presentation/components/button_icon.dart';
-import 'package:cryptogram_game/presentation/pages/keyboard.dart';
+import 'package:cryptogram_game/pages/game/bloc/game_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:lottie/lottie.dart';
-import 'package:material_dialogs/material_dialogs.dart';
 import 'board.dart';
 import 'dart:math' as math;
+
+import 'keyboard.dart';
 
 class GamePage extends StatefulWidget {
   const GamePage({Key? key}) : super(key: key);
@@ -43,12 +44,11 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
                       IconInteractive(
                         icon: Icons.lightbulb_outline_rounded,
                         onTap: () {
-                          //_showOverlay(context, text: "TEXT");
                           context.read<GameBloc>().add(HintLetter());
                         },
                       ),
                       const SizedBox(width: 1.0),
-                      const Text("2", textAlign: TextAlign.left)
+                      const Text("", textAlign: TextAlign.left)
                     ],
                   ),
                 ),
@@ -82,7 +82,7 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
     String twoDigits(int n) => n.toString().padLeft(2, "0");
     String twoDigitMinutes = twoDigits(duration.inMinutes.remainder(60));
     String twoDigitSeconds = twoDigits(duration.inSeconds.remainder(60));
-    return "${twoDigits(duration.inHours)}:$twoDigitMinutes:$twoDigitSeconds";
+    return "$twoDigitMinutes:$twoDigitSeconds";
   }
 
   Widget gameBoard(GameInitial state) {
@@ -131,19 +131,17 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
             Text(
               state.quote.text,
               textAlign: TextAlign.justify,
-              style:
-                  textTheme.bodySmall!.copyWith(fontStyle: FontStyle.italic, fontSize: textTheme.bodySmall!.fontSize! + 5),
+              style: textTheme.bodySmall!
+                  .copyWith(fontStyle: FontStyle.italic, fontSize: textTheme.bodySmall!.fontSize! + 5),
             ),
             const SizedBox(height: 8),
             Row(
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
                 Text(
-                    "${state.quote.author ?? "Autor nieznany"}${state.quote.source != null ? ", ${state.quote.source!}" : ""}",
+                    "${state.quote.author ?? "Autor nieznany"}${(state.quote.source?.isNotEmpty ?? false) ? ", ${state.quote.source!}" : ""}",
                     textAlign: TextAlign.justify,
-                    style: textTheme.bodySmall!.copyWith(
-                      fontStyle: FontStyle.italic,
-                    )),
+                    style: GoogleFonts.caveat(textStyle: textTheme.titleLarge!.copyWith())),
               ],
             ),
             const SizedBox(height: 24),
@@ -185,7 +183,8 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
                   child: MaterialButton(
                     height: 60.0,
                     onPressed: () {
-                      context.read<GameBloc>().add(GameStarted(state.level, chosenAuthor: state.chosenAuthor, chosenCategory: state.chosenCategory));
+                      context.read<GameBloc>().add(GameStarted(state.level,
+                          chosenAuthor: state.chosenAuthor, chosenCategory: state.chosenCategory));
                     },
                     shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(4))),
                     color: Colors.blue,
