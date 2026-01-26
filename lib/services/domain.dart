@@ -16,7 +16,7 @@ bool isLetterHidden(
     hiddenLetters.contains(letter);
 
 bool isPunctuationMark(String e) =>
-    e == ',' || e == '.' || e == '-' || e == ';' || e == ":" || e == '(' || e == ')' || e == '[' || e == ']';
+    e == '"' || e == ',' || e == '.' || e == '-' || e == ';' || e == ":" || e == '(' || e == ')' || e == '[' || e == ']';
 
 
 List<String> polishAlphabet = [
@@ -75,6 +75,15 @@ extension LevelExtension on Level {
     }
   }
 
+  double get scoreMultiplier {
+    switch (this) {
+      case Level.easy: return 1.0;
+      case Level.medium: return 1.5;
+      case Level.hard: return 2.2;
+      case Level.expert: return 3.3;
+    }
+  }
+
   int get defaultTimeToSolve {
     switch (this) {
       case Level.easy:
@@ -99,7 +108,7 @@ extension LevelExtension on Level {
       case Level.hard:
         return Colors.red;
       case Level.expert:
-        return Colors.pink;
+        return Colors.pinkAccent;
     }
   }
 }

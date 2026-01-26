@@ -4,10 +4,10 @@ import 'package:flutter/material.dart';
 class AppColors {
   /// Tint1 for primary color. Used for background scaffold or dark
   /// text appearance.
-  static const primary = Color(0xFF3DE5BD);
+  static const primary = const Color(0xFF00B0FF); // Neonowy błękit;
 
   /// Shade1 for primary color. Used for light text appearance and icons.
-  static const shade1 = Color(0xFF343434);
+  static const shade1 = Color(0xFF2C2929);
 
   /// Shade2 for primary color.
   static const shade2 = Color(0xFF4B4B4B);

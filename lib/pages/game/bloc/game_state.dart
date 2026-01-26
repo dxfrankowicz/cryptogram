@@ -33,6 +33,7 @@ class GameInitial extends GameState {
   final Duration gameDuration;
   final String chosenAuthor;
   final String chosenCategory;
+  final ScoreBreakdown score;
 
   const GameInitial(
       {this.quote = const Quote(text: ''),
@@ -43,6 +44,7 @@ class GameInitial extends GameState {
       this.activeIndex = -1,
       this.chosenAuthor = '',
       this.chosenCategory = '',
+      this.score = const ScoreBreakdown.empty(),
       this.hiddenLetters = const <String>[],
       this.hintedLetters = const <String>[],
       this.lettersOfQuoteInOrder = const <String>[],
@@ -64,25 +66,26 @@ class GameInitial extends GameState {
         activeIndex,
         gameDuration,
         chosenAuthor,
-        chosenCategory
+        chosenCategory,
+        score
       ];
 
   /// Provides a copied instance.
-  GameInitial copyWith({
-    GameStatus? gameStatus,
-    Quote? quote,
-    String? activeLetter,
-    int? activeIndex,
-    Level? level,
-    List<String>? hiddenLetters,
-    List<LetterCode>? lettersCode,
-    List<String>? hintedLetters,
-    List<String>? lettersOfQuoteInOrder,
-    Duration? gameDuration,
-    List<LetterCode>? playerGuesses,
-    String? chosenAuthor,
-    String? chosenCategory
-  }) =>
+  GameInitial copyWith(
+          {GameStatus? gameStatus,
+          Quote? quote,
+          String? activeLetter,
+          int? activeIndex,
+          Level? level,
+          List<String>? hiddenLetters,
+          List<LetterCode>? lettersCode,
+          List<String>? hintedLetters,
+          List<String>? lettersOfQuoteInOrder,
+          Duration? gameDuration,
+          List<LetterCode>? playerGuesses,
+          String? chosenAuthor,
+          String? chosenCategory,
+            ScoreBreakdown? score}) =>
       GameInitial(
           gameStatus: gameStatus ?? this.gameStatus,
           quote: quote ?? this.quote,
@@ -95,7 +98,30 @@ class GameInitial extends GameState {
           chosenAuthor: chosenAuthor ?? this.chosenAuthor,
           chosenCategory: chosenCategory ?? this.chosenCategory,
           level: level ?? this.level,
-          lettersOfQuoteInOrder:
-              lettersOfQuoteInOrder ?? this.lettersOfQuoteInOrder,
+          score: score ?? this.score,
+          lettersOfQuoteInOrder: lettersOfQuoteInOrder ?? this.lettersOfQuoteInOrder,
           lettersCode: lettersCode ?? this.lettersCode);
+}
+
+class ScoreBreakdown {
+  final int basePoints;
+  final int basePointsMultipliedByLevel;
+  final int timeBonus;
+  final double flawlessMultiplier;
+  final int finalScore;
+
+  ScoreBreakdown({
+    required this.basePoints,
+    required this.timeBonus,
+    required this.basePointsMultipliedByLevel,
+    required this.flawlessMultiplier,
+    required this.finalScore,
+  });
+
+  const ScoreBreakdown.empty()
+      : basePoints = 0,
+        timeBonus = 0,
+        basePointsMultipliedByLevel = 0,
+        flawlessMultiplier = 1.0,
+        finalScore = 0;
 }

@@ -1,4 +1,3 @@
-import 'package:cryptogram_game/services/firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -6,7 +5,7 @@ import 'app/app.dart';
 import 'data.dart';
 import 'firebase_options.dart';
 
-void main() async{
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
@@ -15,7 +14,7 @@ void main() async{
 
   runApp(RepositoryProvider(
     create: (context) => GameStatsRepository(GameStatsSharedPrefProvider()),
-    child: const CryptogramApp(),
+    child: const CryptogramGameApp(),
   ));
 }
 
@@ -23,5 +22,5 @@ void main() async{
 
 ///https://cytatybaza.pl/cytaty/ekonomiczne/o-pieniadzach/
 
-
 ///https://refleksja.info/kategorie
+///

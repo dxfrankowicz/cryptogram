@@ -7,6 +7,7 @@ part of 'quote.dart';
 // **************************************************************************
 
 Quote _$QuoteFromJson(Map<String, dynamic> json) => Quote(
+      id: (json['id'] as num?)?.toInt(),
       text: json['text'] as String,
       author: json['author'] as String?,
       source: json['source'] as String?,
@@ -20,4 +21,5 @@ Map<String, dynamic> _$QuoteToJson(Quote instance) => <String, dynamic>{
       'author': instance.author,
       'source': instance.source,
       'categories': instance.categories,
+      'id': instance.id,
     };

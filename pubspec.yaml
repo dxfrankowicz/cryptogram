@@ -50,6 +50,7 @@ dependencies:
   google_fonts:
   firebase_core:
   cloud_firestore:
+  audioplayers:
 
 dev_dependencies:
   build_runner:
@@ -79,6 +80,7 @@ flutter:
   assets:
     - assets/
     - assets/quotes/quotes.json
+    - assets/sounds/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware.

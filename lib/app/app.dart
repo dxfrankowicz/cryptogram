@@ -6,10 +6,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'colors.dart';
 
-/// App widget that wraps the flutter app.
-class CryptogramApp extends StatelessWidget {
-  /// Constructor
-  const CryptogramApp({Key? key}) : super(key: key);
+class CryptogramGameApp extends StatelessWidget {
+  const CryptogramGameApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -24,6 +22,7 @@ class CryptogramApp extends StatelessWidget {
         appBarTheme: const AppBarTheme(
           systemOverlayStyle: SystemUiOverlayStyle.light,
           elevation: 0,
+          surfaceTintColor: Colors.transparent,
           color: Colors.transparent,
         ),
         textTheme: const TextTheme(
@@ -66,9 +65,9 @@ class CryptogramApp extends StatelessWidget {
         ),
       ),
       home: BlocProvider(
-        create: (ctx) => QuotesBloc(ctx.read<GameStatsRepository>())..add(const GetQuotes(forceGetFromFirestore: true)),
-        child: const MenuPage(),
-      ),
+          create: (ctx) =>
+              QuotesBloc(ctx.read<GameStatsRepository>())..add(const GetQuotes(forceGetFromFirestore: true)),
+          child: const HomeMenuScreen()),
     );
   }
 }

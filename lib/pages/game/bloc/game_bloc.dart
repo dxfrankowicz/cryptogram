@@ -146,6 +146,11 @@ class GameBloc extends Bloc<GameEvent, GameInitial> {
   void _onLetterPressed(LetterPressed event, Emitter<GameInitial> emit, {String? hintLetter}) {
     log("SETTING LETTER: ${event.letter} FOR CODE: ${getCodeByLetter(letter: hintLetter ?? state.activeLetter)}");
 
+    if(hintLetter == null && state.hintedLetters.contains(state.activeLetter)){
+      log("LETTER: ${event.letter} IS HINTED, CANT CHANGE");
+      return;
+    }
+
     if(getCodeByLetter(letter: hintLetter ?? state.activeLetter) != null) {
       final playerGuesses = setLetter(
           code: getCodeByLetter(letter: hintLetter ?? state.activeLetter)!,
@@ -263,7 +268,44 @@ class GameBloc extends Bloc<GameEvent, GameInitial> {
   void _onGameFinished(GameFinished event, Emitter<GameInitial> emit) {
     log("GAME WON");
     timer.cancel();
-    emit(state.copyWith(gameStatus: event.hasWon ? GameStatus.success : GameStatus.failure));
+
+    ScoreBreakdown calculateScoreBreakdown() {
+      final level = state.level;
+      final multiplier = level.scoreMultiplier;
+
+      // 1. Punkty bazowe za tekst
+      int basePoints = state.quote.text.length * 10;
+      int basePointsMultipliedByLevel = (basePoints * multiplier).round();
+
+      // 2. Bonus czasowy
+      int timeSpent = timer.tick; // Zakładamy, że to sekundy od startu
+      int timeRemaining = (level.defaultTimeToSolve - timeSpent).clamp(0, level.defaultTimeToSolve);
+
+      int timeBonus = 0;
+      if (level.defaultTimeToSolve > 0) {
+        timeBonus = ((timeRemaining / level.defaultTimeToSolve) * (multiplier * 150)).round();
+      }
+
+      double flawlessMultiplier = state.hintedLetters.isEmpty ? 1.2 : 1.0;
+
+      // 4. Obliczenie sumy końcowej
+      double total = (basePoints + timeBonus).toDouble();
+      if (flawlessMultiplier > 1.0) {
+        total *= flawlessMultiplier;
+      }
+
+      int finalScore = total.round();
+
+      return ScoreBreakdown(
+        basePoints: basePoints,
+        basePointsMultipliedByLevel: basePointsMultipliedByLevel,
+        timeBonus: timeBonus,
+        flawlessMultiplier: flawlessMultiplier,
+        finalScore: finalScore,
+      );
+    }
+
+    emit(state.copyWith(score: calculateScoreBreakdown(), gameStatus: event.hasWon ? GameStatus.success : GameStatus.failure));
   }
 
   FutureOr<void> _resetCurrentGame(ResetCurrentGame event, Emitter<GameInitial> emit) {

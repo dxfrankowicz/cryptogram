@@ -9,7 +9,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 class GameBoard extends StatelessWidget {
   GameBoard({Key? key}) : super(key: key);
-  List<UniqueKey> list = [];
+  final List<UniqueKey> list = [];
 
   void _setActiveLetter(BuildContext context, int index) {
     BlocProvider.of<GameBloc>(context).add(BoardLetterPressed(index));
@@ -21,126 +21,100 @@ class GameBoard extends StatelessWidget {
     final playerGuesses = state.playerGuesses;
     final quote = state.quote;
     final activeLetter = state.activeLetter;
-    final textTheme = Theme.of(context).textTheme;
+    final primaryColor = Theme.of(context).primaryColor;
 
     List<String> words = getWordListOfSentence(quote.text);
     double screenWidth = MediaQuery.of(context).size.width - 40;
+    list.clear(); // Czyścimy listę przy każdym przebudowaniu
 
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Flexible(
-          child: Wrap(
-              alignment: WrapAlignment.center,
-                children: words.map((word) {
-                  if (word.isNotEmpty) {
-                    return Padding(
-                      padding: const EdgeInsets.only(right: 8, left: 8, bottom: 8),
-                      child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: getLetterListOfSentence(word).map(
-                            (letter) {
-                              final code = state.lettersCode.firstWhereOrNull((x) => x.letter == letter)?.code;
-                              UniqueKey key = UniqueKey();
-                              list.add(key);
-                              return letter == '\n' ? SizedBox(width: 25) : SizedBox(
-                                width: (screenWidth / getLongestWordLength(quote)) > 25
-                                    ? 25
-                                    : (screenWidth / getLongestWordLength(quote)),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                                  children: [
-                                    InkWell(
-                                      onTap: isPunctuationMark(letter)
-                                          ? null
-                                          : isLetterHidden(letter: letter, hiddenLetters: state.hiddenLetters)
-                                              ? () => _setActiveLetter(context, list.indexOf(key))
-                                              : null,
-                                      borderRadius: const BorderRadius.all(Radius.circular(6)),
-                                      child: Card(
-                                        margin: const EdgeInsets.symmetric(horizontal: 2, vertical: 1),
-                                        surfaceTintColor: Colors.transparent,
-                                        color: isPunctuationMark(letter) ? Colors.transparent : null,
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius: const BorderRadius.all(Radius.circular(6)),
-                                          side: activeLetter == letter
-                                              ? BorderSide(color: AppColors.highlight, width: 1.0)
-                                              : BorderSide.none,
-                                        ),
-                                        child: Container(
-                                          alignment: Alignment.center,
-                                          padding: const EdgeInsets.all(2),
-                                          child: Text(
-                                              isPunctuationMark(letter)
-                                                  ? letter
-                                                  : isLetterHidden(letter: letter, hiddenLetters: state.hiddenLetters)
-                                                      ? playerGuesses
-                                                              .firstWhereOrNull((x) => x.code == code)
-                                                              ?.letter
-                                                              ?.toUpperCase() ??
-                                                          ''
-                                                      : letter.toUpperCase(),
-                                              style: textTheme.titleMedium),
-                                        ),
-                                      ),
-                                    ),
-                                    const SizedBox(height: 2),
-                                    InkWell(
-                                      onTap: isPunctuationMark(letter)
-                                          ? null
-                                          : isLetterHidden(letter: letter, hiddenLetters: state.hiddenLetters)
-                                              ? () => _setActiveLetter(context, list.indexOf(key))
-                                              : null,
-                                      borderRadius: const BorderRadius.all(Radius.circular(6)),
-                                      child: Text(
-                                          isPunctuationMark(letter)
-                                              ? ''
-                                              : !isLetterHidden(letter: letter, hiddenLetters: state.hiddenLetters)
-                                                  ? ''
-                                                  : state.lettersCode
-                                                      .firstWhere((x) => x.letter == letter)
-                                                      .code!
-                                                      .toUpperCase(),
-                                          textAlign: TextAlign.center,
-                                          style: textTheme.titleMedium!.copyWith(
-                                              color: state.activeLetter == letter ? AppColors.highlight : Colors.grey)),
-                                    )
-                                  ],
-                                ),
-                              );
-                            },
-                          ).toList()),
-                    );
-                  } else {
-                    return const SizedBox(
-                      width: 30.0,
-                    );
-                  }
+        Wrap(
+          alignment: WrapAlignment.center,
+          runSpacing: 12, // Odstęp między linijkami
+          children: words.map((word) {
+            if (word.isEmpty) return const SizedBox(width: 20);
+
+            return Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: getLetterListOfSentence(word).map((letter) {
+                  final code = state.lettersCode.firstWhereOrNull((x) => x.letter == letter)?.code;
+                  UniqueKey key = UniqueKey();
+                  list.add(key);
+                  int currentIndex = list.indexOf(key);
+
+                  bool isHidden = isLetterHidden(letter: letter, hiddenLetters: state.hiddenLetters);
+                  bool isPunctuation = isPunctuationMark(letter);
+                  bool isActive = activeLetter == letter;
+
+                  double boxSize = (screenWidth / getLongestWordLength(quote)).clamp(20.0, 28.0);
+
+                  return SizedBox(
+                    width: boxSize,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        GestureDetector(
+                          onTap: (isPunctuation || !isHidden) ? null : () => _setActiveLetter(context, currentIndex),
+                          child: AnimatedContainer(
+                            duration: 200.ms,
+                            margin: const EdgeInsets.symmetric(horizontal: 1.5),
+                            height: boxSize * 1.2,
+                            decoration: BoxDecoration(
+                              color: isPunctuation
+                                  ? Colors.transparent
+                                  : (isActive ? primaryColor.withOpacity(0.1) : Colors.white.withOpacity(0.05)),
+                              borderRadius: BorderRadius.circular(4),
+                              border: Border.all(
+                                color: isActive ? primaryColor.withOpacity(0.5) : (isPunctuation ? Colors.transparent : Colors.white10),
+                                width: isActive ? 1.5 : 1,
+                              ),
+                              boxShadow:
+                                  isActive ? [BoxShadow(color: primaryColor.withOpacity(0.01), blurRadius: 12)] : [],
+                            ),
+                            alignment: Alignment.center,
+                            child: Text(
+                              isPunctuation
+                                  ? letter
+                                  : isHidden
+                                      ? playerGuesses.firstWhereOrNull((x) => x.code == code)?.letter?.toUpperCase() ??
+                                          ''
+                                      : letter.toUpperCase(),
+                              style: GoogleFonts.jetBrainsMono(
+                                fontSize: boxSize * 0.6,
+                                fontWeight: FontWeight.bold,
+                                color: state.hintedLetters.contains(letter) ? Colors.orangeAccent : (isActive ? primaryColor : Colors.white),
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        // DOLNY SYMBOL (Kod szyfru)
+                        if (!isPunctuation && isHidden)
+                          SizedBox(
+                            child: Text(
+                              code?.toUpperCase() ?? '',
+                              style: GoogleFonts.jetBrainsMono(
+                                fontSize: boxSize * 0.4,
+                                fontWeight: FontWeight.w500,
+                                color: isActive ? primaryColor : Colors.grey.withOpacity(0.6),
+                              ),
+                            ),
+                          )
+                        else
+                          SizedBox(height: boxSize * 0.4),
+                      ],
+                    ),
+                  );
                 }).toList(),
-              )),
-        Container(
-          margin: const EdgeInsets.symmetric(vertical: 6),
-          alignment: Alignment.centerRight,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text("- ${quote.author ?? "Autor nieznany"}",
-                  textAlign: TextAlign.end,
-                  style: GoogleFonts.caveat(
-                      textStyle: textTheme.titleLarge!
-                          .copyWith(fontWeight: FontWeight.w600, color: Colors.grey))),
-              if (quote.source?.isNotEmpty ?? false)
-                Text("\"${quote.source!}\"",
-                    textAlign: TextAlign.end,
-                    style: textTheme.bodySmall!.copyWith(fontStyle: FontStyle.italic, color: Colors.grey)),
-              if (quote.categories?.isNotEmpty ?? false)
-                Text(quote.categories!.join(', '),
-                    textAlign: TextAlign.end,
-                    style: textTheme.titleMedium!
-                        .copyWith(fontStyle: FontStyle.italic, fontWeight: FontWeight.w600, color: Colors.grey)),
-            ],
-          ),
-        )
+              ),
+            );
+          }).toList(),
+        ),
       ],
     );
   }
