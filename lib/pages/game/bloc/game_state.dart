@@ -34,6 +34,7 @@ class GameInitial extends GameState {
   final String chosenAuthor;
   final String chosenCategory;
   final ScoreBreakdown score;
+  final int maxHints;
 
   const GameInitial(
       {this.quote = const Quote(text: ''),
@@ -44,6 +45,7 @@ class GameInitial extends GameState {
       this.activeIndex = -1,
       this.chosenAuthor = '',
       this.chosenCategory = '',
+      this.maxHints = 5,
       this.score = const ScoreBreakdown.empty(),
       this.hiddenLetters = const <String>[],
       this.hintedLetters = const <String>[],
@@ -67,7 +69,8 @@ class GameInitial extends GameState {
         gameDuration,
         chosenAuthor,
         chosenCategory,
-        score
+        score,
+        maxHints
       ];
 
   /// Provides a copied instance.
@@ -84,8 +87,9 @@ class GameInitial extends GameState {
           Duration? gameDuration,
           List<LetterCode>? playerGuesses,
           String? chosenAuthor,
+          int? maxHints,
           String? chosenCategory,
-            ScoreBreakdown? score}) =>
+          ScoreBreakdown? score}) =>
       GameInitial(
           gameStatus: gameStatus ?? this.gameStatus,
           quote: quote ?? this.quote,
@@ -98,6 +102,7 @@ class GameInitial extends GameState {
           chosenAuthor: chosenAuthor ?? this.chosenAuthor,
           chosenCategory: chosenCategory ?? this.chosenCategory,
           level: level ?? this.level,
+          maxHints: maxHints ?? this.maxHints,
           score: score ?? this.score,
           lettersOfQuoteInOrder: lettersOfQuoteInOrder ?? this.lettersOfQuoteInOrder,
           lettersCode: lettersCode ?? this.lettersCode);

@@ -70,7 +70,7 @@ class GameBoard extends StatelessWidget {
                                   : (isActive ? primaryColor.withOpacity(0.1) : Colors.white.withOpacity(0.05)),
                               borderRadius: BorderRadius.circular(4),
                               border: Border.all(
-                                color: isActive ? primaryColor.withOpacity(0.5) : (isPunctuation ? Colors.transparent : Colors.white10),
+                                color: isActive ? primaryColor.withOpacity(0.5) : (Colors.white10),
                                 width: isActive ? 1.5 : 1,
                               ),
                               boxShadow:

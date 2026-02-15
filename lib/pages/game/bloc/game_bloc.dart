@@ -43,7 +43,7 @@ class GameBloc extends Bloc<GameEvent, GameInitial> {
   String? getPlayerGuessCodeByLetter({required String letter}) =>
       state.playerGuesses.firstWhereOrNull((x) => x.letter == letter)?.code;
 
-  int _calculateScore({required Level level, required int seconds}){
+  int _calculateScore({required Level level, required int seconds}) {
     return level.difficulty * seconds;
   }
 
@@ -78,10 +78,11 @@ class GameBloc extends Bloc<GameEvent, GameInitial> {
     final lettersInSentence = getLetterListOfSentence(quote.text).where((x) => polishAlphabet.contains(x)).toSet();
     List<String> hiddenLetters = [];
     List<String> hiddenLettersInOrder = [];
+    late int numberOfLettersToHide;
 
     void generateCodes(Quote quote) {
       void generateHiddenLetters() {
-        int numberOfLettersToHide = (lettersInSentence.length * (event.level.difficulty / 100)).toInt();
+        numberOfLettersToHide = (lettersInSentence.length * (event.level.difficulty / 100)).toInt();
         List<String> availableLetters = List.of(lettersInSentence);
 
         for (int i = 0; i < numberOfLettersToHide; i++) {
@@ -111,6 +112,7 @@ class GameBloc extends Bloc<GameEvent, GameInitial> {
 
     generateCodes(quote);
 
+    log("HIDDEN LETTERS: $numberOfLettersToHide");
     log("GAME HAS STARTED: '${quote.text}'");
     emit(GameInitial(
         quote: quote,
@@ -119,6 +121,7 @@ class GameBloc extends Bloc<GameEvent, GameInitial> {
         playerGuesses: playerGuesses,
         chosenAuthor: event.chosenAuthor,
         chosenCategory: event.chosenCategory,
+        maxHints: math.min((numberOfLettersToHide / 3).floor(), event.level == Level.expert ? 6 : 5),
         lettersCode: lettersCode,
         lettersOfQuoteInOrder: quote.text.toLowerCase().split('').where((x) => x.isNotEmpty && x != ' ').toList(),
         hiddenLetters: hiddenLettersInOrder));
@@ -146,12 +149,12 @@ class GameBloc extends Bloc<GameEvent, GameInitial> {
   void _onLetterPressed(LetterPressed event, Emitter<GameInitial> emit, {String? hintLetter}) {
     log("SETTING LETTER: ${event.letter} FOR CODE: ${getCodeByLetter(letter: hintLetter ?? state.activeLetter)}");
 
-    if(hintLetter == null && state.hintedLetters.contains(state.activeLetter)){
+    if (hintLetter == null && state.hintedLetters.contains(state.activeLetter)) {
       log("LETTER: ${event.letter} IS HINTED, CANT CHANGE");
       return;
     }
 
-    if(getCodeByLetter(letter: hintLetter ?? state.activeLetter) != null) {
+    if (getCodeByLetter(letter: hintLetter ?? state.activeLetter) != null) {
       final playerGuesses = setLetter(
           code: getCodeByLetter(letter: hintLetter ?? state.activeLetter)!,
           letter: event.letter,
@@ -305,7 +308,8 @@ class GameBloc extends Bloc<GameEvent, GameInitial> {
       );
     }
 
-    emit(state.copyWith(score: calculateScoreBreakdown(), gameStatus: event.hasWon ? GameStatus.success : GameStatus.failure));
+    emit(state.copyWith(
+        score: calculateScoreBreakdown(), gameStatus: event.hasWon ? GameStatus.success : GameStatus.failure));
   }
 
   FutureOr<void> _resetCurrentGame(ResetCurrentGame event, Emitter<GameInitial> emit) {

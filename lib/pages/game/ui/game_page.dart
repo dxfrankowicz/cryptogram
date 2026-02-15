@@ -3,6 +3,7 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:confetti/confetti.dart';
 import 'package:cryptogram_game/pages/game/bloc/game_bloc.dart';
 import 'package:cryptogram_game/presentation/components/score_animated.dart';
+import 'package:cryptogram_game/presentation/components/system_action_button.dart';
 import 'package:cryptogram_game/services/domain.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -12,91 +13,6 @@ import '../../../app/colors.dart';
 import 'board.dart';
 import 'dart:math' as math;
 import 'keyboard.dart';
-
-class SystemActionButton extends StatefulWidget {
-  final IconData icon;
-  final String label;
-  final VoidCallback onTap;
-  final Color activeColor; // Nowe pole na kolor podświetlenia
-
-  const SystemActionButton({
-    Key? key,
-    required this.icon,
-    required this.label,
-    required this.onTap,
-    this.activeColor = Colors.orangeAccent, // Domyślnie pomarańczowy
-  }) : super(key: key);
-
-  @override
-  State<SystemActionButton> createState() => _SystemActionButtonState();
-}
-
-class _SystemActionButtonState extends State<SystemActionButton> {
-  bool _isPressed = false;
-
-  void _handleTap() {
-    setState(() => _isPressed = true);
-    widget.onTap();
-
-    Future.delayed(const Duration(milliseconds: 300), () {
-      if (mounted) setState(() => _isPressed = false);
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final primary = Theme.of(context).primaryColor;
-    final currentColor = _isPressed ? widget.activeColor : primary;
-
-    return Center(
-      child: GestureDetector(
-        onTap: _handleTap,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            AnimatedContainer(
-              duration: const Duration(milliseconds: 600),
-              curve: Curves.easeOutQuint,
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: currentColor.withOpacity(_isPressed ? 0.2 : 0.1),
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(
-                  color: currentColor.withOpacity(_isPressed ? 0.8 : 0.3),
-                  width: 1.0,
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: widget.activeColor.withOpacity(_isPressed ? 0.4 : 0.0),
-                    blurRadius: _isPressed ? 12 : 0,
-                    spreadRadius: _isPressed ? 2 : 0,
-                  )
-                ],
-              ),
-              child: Icon(
-                widget.icon,
-                color: currentColor,
-                size: 20,
-              ),
-            ),
-            const SizedBox(height: 4),
-            AnimatedDefaultTextStyle(
-              duration: const Duration(milliseconds: 600),
-              curve: Curves.easeOutQuint,
-              style: GoogleFonts.jetBrainsMono(
-                color: currentColor.withOpacity(0.8),
-                fontSize: 9,
-                fontWeight: FontWeight.bold,
-                letterSpacing: 1.0,
-              ),
-              child: Text(widget.label.toUpperCase()),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
 
 class GamePage extends StatefulWidget {
   const GamePage({Key? key}) : super(key: key);
@@ -183,15 +99,58 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
         actions: state.gameStatus == GameStatus.success
             ? []
             : [
-                SystemActionButton(
-                  icon: Icons.lightbulb_outline_rounded,
-                  label: "Tip",
-                  activeColor: Colors.orangeAccent,
-                  onTap: () {
-                    _audioPlayer.stop();
-                    _audioPlayer.play(AssetSource('sounds/hint.mp3'), volume: 1);
-                    context.read<GameBloc>().add(HintLetter());
-                  },
+                Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    SystemActionButton(
+                      icon: Icons.lightbulb_outline_rounded,
+                      label: "Tip",
+                      underIconWidget: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: List.generate(state.maxHints, (index) {
+                          bool isUsed = index >= (state.maxHints - state.hintedLetters.length);
+                          return AnimatedContainer(
+                            margin: EdgeInsets.only(right: index == state.maxHints - 1 ? 0 : 2),
+                            width: 2.5,
+                            height: 2.5,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: isUsed ? Colors.grey : Colors.cyanAccent,
+                            ),
+                            duration: const Duration(milliseconds: 500),
+                          );
+                        }),
+                      ),
+                      activeColor: Colors.orangeAccent,
+                      disabled: state.hintedLetters.length == state.maxHints,
+                      onTap: () {
+                        _audioPlayer.stop();
+                        _audioPlayer.play(AssetSource('sounds/hint.mp3'), volume: 1);
+                        context.read<GameBloc>().add(HintLetter());
+                      },
+                    ),
+                    Positioned(
+                      top: 3,
+                      right: -2,
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 600),
+                        curve: Curves.easeOutQuint,
+                        padding: const EdgeInsets.symmetric(horizontal: 2),
+                        decoration: BoxDecoration(
+                          color: AppColors.shade2,
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(
+                            color: Theme.of(context).primaryColor.withOpacity(0.2),
+                            width: 1.0,
+                          ),
+                        ),
+                        child: Text(
+                          '45',
+                          style: Theme.of(context).textTheme.labelSmall!.copyWith(fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                    )
+                  ],
                 ),
                 const SizedBox(width: 8),
                 SystemActionButton(

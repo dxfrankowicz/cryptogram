@@ -16,7 +16,7 @@ bool isLetterHidden(
     hiddenLetters.contains(letter);
 
 bool isPunctuationMark(String e) =>
-    e == '"' || e == ',' || e == '.' || e == '-' || e == ';' || e == ":" || e == '(' || e == ')' || e == '[' || e == ']';
+    e == '"' || e == ',' || e == '.' || e == '-' || e == ';' || e == ":" || e == '(' || e == ')' || e == '[' || e == ']' || e == '...' || e == ',,,';
 
 
 List<String> polishAlphabet = [
